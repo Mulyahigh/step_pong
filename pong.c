@@ -8,6 +8,9 @@ void print_score(int score_player_1, int score_player_2);
 int get_ball_y_new_coords(int x, int ball_movement);
 int is_right_racket_ball_collision(int x, int y, int r2x1, int r2y1, int r2y2, int r2y3);
 int is_left_racket_ball_collision(int x, int y, int r1x1, int r1y1, int r1y2, int r1y3);
+int is_top_border_collision(int ball_y);
+int is_bottom_border_collision(int ball_y);
+int is_ball_out(int ball_x);
 // void clear_display(void)
 // {
 //     printf("\033[2J");
@@ -45,7 +48,7 @@ int main()
     render_play_field(x_min, x_max, y_min, y_max, racket_p1_x, racket_p1_y_1, racket_p1_y_2, racket_p1_y_3, racket_p2_x, racket_p2_y_1, racket_p2_y_2, racket_p2_y_3, ball_x, ball_y, coord_net_1, coord_net_2);
     print_current_player(current_player);
 
-    while (score_player_1 < 21 || score_player_2 < 21)
+    while (score_player_1 < 1 && score_player_2 < 1)
     {
         char action = getchar();
 
@@ -120,8 +123,6 @@ int main()
         print_score(score_player_1, score_player_2);
         render_play_field(x_min, x_max, y_min, y_max, racket_p1_x, racket_p1_y_1, racket_p1_y_2, racket_p1_y_3, racket_p2_x, racket_p2_y_1, racket_p2_y_2, racket_p2_y_3, ball_x, ball_y, coord_net_1, coord_net_2);
         print_current_player(current_player);
-        // printf("%d", ball_x);
-        // printf("%d", ball_y);
 
         int new_ball_x = ball_x;
         int new_ball_y = ball_y;
@@ -143,9 +144,73 @@ int main()
             current_player = player_2;
         }
 
+        if (is_bottom_border_collision(new_ball_y) == 1)
+        {
+            ball_movement = 1;
+        }
+
+        if (is_top_border_collision(new_ball_y) == 1)
+        {
+            ball_movement = 0;
+        }
+
         ball_x = new_ball_x;
         ball_y = new_ball_y;
+
+        if (is_ball_out(ball_x) == 1)
+        {
+            if (current_player == player_1)
+            {
+                score_player_2 += 1;
+                current_player = player_2;
+                ball_x = 78;
+                ball_y = 12;
+                racket_p1_x = 1;
+                racket_p1_y_1 = 11;
+                racket_p1_y_2 = 12;
+                racket_p1_y_3 = 13;
+                racket_p2_x = 80;
+                racket_p2_y_1 = 11;
+                racket_p2_y_2 = 12;
+                racket_p2_y_3 = 13;
+                ball_direction = 1;
+            }
+            else
+            {
+                score_player_1 += 1;
+                current_player = player_1;
+                ball_x = 2;
+                ball_y = 12;
+                racket_p1_x = 1;
+                racket_p1_y_1 = 11;
+                racket_p1_y_2 = 12;
+                racket_p1_y_3 = 13;
+                racket_p2_x = 80;
+                racket_p2_y_1 = 11;
+                racket_p2_y_2 = 12;
+                racket_p2_y_3 = 13;
+                ball_direction = -1;
+            }
+        }
     }
+
+    print_score(score_player_1, score_player_2);
+    render_play_field(x_min, x_max, y_min, y_max, racket_p1_x, racket_p1_y_1, racket_p1_y_2, racket_p1_y_3, racket_p2_x, racket_p2_y_1, racket_p2_y_2, racket_p2_y_3, ball_x, ball_y, coord_net_1, coord_net_2);
+
+    if (score_player_1 > score_player_2)
+    {
+        printf("                             *******************\n");
+        printf("                             * Player 1 win!!! *\n");
+        printf("                             *******************\n");
+    }
+    else
+    {
+        printf("                             *******************\n");
+        printf("                             * Player 2 win!!! *\n");
+        printf("                             *******************\n");
+    }
+
+    return 0;
 }
 
 void render_play_field(int x_min, int x_max, int y_min, int y_max, int r1x1, int r1y1, int r1y2, int r1y3, int r2x1, int r2y1, int r2y2, int r2y3, int bx, int by, int coord_net_1, int coord_net_2)
@@ -211,11 +276,6 @@ int get_ball_y_new_coords(int x, int ball_movement)
 
     // return y;
 
-    if (ball_movement == 33) // DELETE
-    {
-        return x;
-    }
-
     if (ball_movement == 0)
     {
         return 12;
@@ -226,17 +286,17 @@ int get_ball_y_new_coords(int x, int ball_movement)
         return 12;
     }
 
-    return 0; // DELETE
-
     // if (ball_movement == 0)
     // {
-    //     return floor(0.5 * x + 0.3);
+    //     return floor(0.5 * x + 12);
     // }
 
     // if (ball_movement == 1)
     // {
-    //     return floor(0.5 * x - 0.3);
+    //     return floor(-0.25 * x + 25);
     // }
+
+    return x; // DELETE
 }
 
 int is_right_racket_ball_collision(int x, int y, int r2x1, int r2y1, int r2y2, int r2y3)
@@ -252,4 +312,38 @@ int is_left_racket_ball_collision(int x, int y, int r1x1, int r1y1, int r1y2, in
 void print_score(int score_player_1, int score_player_2)
 {
     printf("                                    %d :: %d\n\n", score_player_1, score_player_2);
+}
+
+int is_top_border_collision(int ball_y)
+{
+    if (ball_y >= 25)
+    {
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
+}
+
+int is_bottom_border_collision(int ball_y)
+{
+    if (ball_y <= 25)
+    {
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
+}
+
+int is_ball_out(int ball_x)
+{
+    if (ball_x < 0 || ball_x > 80)
+    {
+        return 1;
+    }
+
+    return 0;
 }
